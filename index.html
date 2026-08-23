@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fallplanung PiA</title>
+<meta name="theme-color" content="#14202E" id="tc">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Fallplanung">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="description" content="Fall- und Supervisionsplanung für die praktische Ausbildung nach § 4 PsychTh-APrV">
+<link rel="manifest" id="mf">
+<link rel="apple-touch-icon" id="ati">
+<style>
+:root{
+  --ink:#14202E;--ink2:#3A4C5E;--paper:#F4F6F4;--card:#fff;--rule:#D1D8DC;
+  --e:#B4690E;--ebg:#FCF1DF;--g:#0E6B63;--gbg:#E0F0EE;
+  --kzt:#3E6FA8;--kztbg:#E3EDF7;--lzt:#6B3FA0;--lztbg:#EEE7F7;
+  --prob:#8A94A0;--alarm:#A32B2B;--alarmbg:#FBECEC;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Roboto Mono",monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --spur:var(--spur);--kopf:var(--kopf);--zeile:var(--zeile);
+  color-scheme:light;
+}
+html[data-theme="dark"]{
+  --ink:#E7ECF0;--ink2:#96A5B1;--paper:#11161B;--card:#1A2128;--rule:#2C363E;
+  --e:#E3A854;--ebg:#3B2C14;--g:#4FC1AF;--gbg:#123531;
+  --kzt:#7BA9DE;--kztbg:#182B3D;--lzt:#AE90DA;--lztbg:#261D39;
+  --prob:#69757F;--alarm:#E8807B;--alarmbg:#3B1E1E;
+  --spur:#232C33;--kopf:#212A31;--zeile:#1E262C;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme:dark){
+  html:not([data-theme="light"]){
+    --ink:#E7ECF0;--ink2:#96A5B1;--paper:#11161B;--card:#1A2128;--rule:#2C363E;
+    --e:#E3A854;--ebg:#3B2C14;--g:#4FC1AF;--gbg:#123531;
+    --kzt:#7BA9DE;--kztbg:#182B3D;--lzt:#AE90DA;--lztbg:#261D39;
+    --prob:#69757F;--alarm:#E8807B;--alarmbg:#3B1E1E;
+    --spur:#232C33;--kopf:#212A31;--zeile:#1E262C;
+    color-scheme:dark;
+  }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;overflow-x:hidden}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;
+  line-height:1.5;-webkit-text-size-adjust:100%}
+.wrap{max-width:820px;margin:0 auto;padding:16px 16px 72px}
+header{padding:20px 0 18px;border-bottom:2px solid var(--ink);position:relative}
+.themebtn{position:absolute;top:16px;right:0;min-width:80px;height:34px;padding:0 12px;
+  border:1px solid var(--rule);background:var(--card);color:var(--ink2);border-radius:3px;
+  font-family:var(--mono);font-size:11px;letter-spacing:.06em;cursor:pointer}
+.themebtn:active{background:var(--rule)}
+.eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink2);margin:0 0 8px}
+h1{font-size:34px;font-weight:800;line-height:1;letter-spacing:-.02em;margin:0}
+.lede{margin:10px 0 0;color:var(--ink2);font-size:14px}
+section{margin-top:30px}
+.shead{display:flex;align-items:baseline;gap:10px;border-bottom:1px solid var(--rule);
+  padding-bottom:7px;margin-bottom:14px}
+.snum{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink2)}
+h2{font-size:17px;font-weight:700;letter-spacing:-.01em;margin:0}
+.hint{font-size:13px;color:var(--ink2);margin:0 0 12px}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.field{background:var(--card);border:1px solid var(--rule);padding:9px 11px}
+.field label{font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--ink2);display:block;margin-bottom:5px}
+.stepper{display:flex;align-items:center;gap:8px}
+.stepper button{width:34px;height:34px;flex:none;border:1px solid var(--rule);background:var(--paper);
+  font-size:19px;line-height:1;border-radius:3px;color:var(--ink);cursor:pointer}
+.stepper button:active{background:var(--rule)}
+.stepper .val{flex:1;text-align:center;font-family:var(--mono);font-size:17px;font-weight:700;
+  font-variant-numeric:tabular-nums}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:1px;
+  background:var(--rule);border:1px solid var(--rule)}
+.tile{background:var(--card);padding:10px 11px}
+.tile .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--ink2);display:block;margin-bottom:3px}
+.tile .v{font-family:var(--mono);font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;
+  line-height:1.1;display:block}
+.tile .u{font-size:11px;color:var(--ink2)}
+.tile.ok .v{color:var(--g)}.tile.bad .v{color:var(--alarm)}.tile.e .v{color:var(--e)}
+.gauge{margin-top:12px}
+.gtop{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11.5px;
+  font-variant-numeric:tabular-nums;margin-bottom:4px}
+.track{height:10px;background:var(--spur);border:1px solid var(--rule);position:relative;overflow:hidden}
+.fill{height:100%;transition:width .25s}
+.fill.e{background:var(--e)}.fill.g{background:var(--g)}.fill.k{background:var(--kzt)}
+.fill.bad{background:var(--alarm)}
+.mark{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink)}
+.verdict{border-left:3px solid var(--ink);background:var(--card);padding:13px 14px;margin-top:16px}
+.verdict.bad{border-color:var(--alarm);background:var(--alarmbg)}
+.verdict h3{font-size:15px;font-weight:700;margin:0 0 7px}
+.verdict.bad h3{color:var(--alarm)}
+.verdict p{margin:0 0 7px;font-size:13.5px}.verdict p:last-child{margin:0}
+.verdict b{font-family:var(--mono);font-weight:700}
+.svs{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:1px;
+  background:var(--rule);border:1px solid var(--rule)}
+.svc{background:var(--card);padding:11px 12px;display:flex;gap:10px;align-items:center}
+.svb{font-family:var(--mono);font-weight:700;font-size:14px;width:30px;height:30px;flex:none;
+  display:grid;place-items:center;border:1.5px solid}
+.svb.e{color:var(--e);border-color:var(--e);background:var(--ebg)}
+.svb.g{color:var(--g);border-color:var(--g);background:var(--gbg)}
+.svm{font-size:12.5px;line-height:1.35}
+.svm em{font-style:normal;display:block;font-size:11px;color:var(--ink2)}
+.svm b{font-family:var(--mono)}
+.tl{background:var(--card);border:1px solid var(--rule);padding:10px 11px}
+.tlrow{display:flex;align-items:center;gap:7px;padding:3px 0}
+.tlid{font-family:var(--mono);font-size:10.5px;font-weight:700;width:26px;flex:none}
+.tlsv{font-family:var(--mono);font-size:9.5px;font-weight:700;min-width:20px;padding:0 2px;height:18px;flex:none;
+  display:grid;place-items:center;border:1px solid}
+.tlsv.e{color:var(--e);border-color:var(--e);background:var(--ebg)}
+.tlsv.g{color:var(--g);border-color:var(--g);background:var(--gbg)}
+.tlbar{flex:1;height:15px;position:relative;background:var(--kopf);border:1px solid var(--rule)}
+.seg{position:absolute;top:0;bottom:0}
+.seg.p{background:var(--prob)}
+.seg.a{background:repeating-linear-gradient(45deg,var(--prob),var(--prob) 3px,var(--kopf) 3px,var(--kopf) 6px)}
+.seg.kzt{background:var(--kzt)}.seg.lzt{background:var(--lzt)}
+.tlbar.ab{outline:1px dashed var(--alarm);outline-offset:1px}
+.wmark{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--alarm)}
+.tlaxis{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9.5px;
+  color:var(--ink2);margin:6px 0 0 51px}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:11.5px;color:var(--ink2);margin-top:10px}
+.legend span{display:flex;align-items:center;gap:5px}
+.sw{width:13px;height:11px;display:inline-block;border:1px solid rgba(0,0,0,.15)}
+.sw.p{background:var(--prob)}
+.sw.a{background:repeating-linear-gradient(45deg,var(--prob),var(--prob) 3px,var(--kopf) 3px,var(--kopf) 6px)}
+.sw.kzt{background:var(--kzt)}.sw.lzt{background:var(--lzt)}
+.case{background:var(--card);border:1px solid var(--rule);margin-bottom:7px;padding:10px 11px}
+.chead{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.chead .id{font-family:var(--mono);font-size:12.5px;font-weight:700}
+.chead .meta{font-family:var(--mono);font-size:11px;color:var(--ink2);margin-left:auto;
+  font-variant-numeric:tabular-nums}
+.cgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cbtn{border:1px solid var(--rule);background:var(--paper);padding:8px;cursor:pointer;
+  font-family:var(--mono);font-size:12px;font-weight:600;color:var(--ink);text-align:center;border-radius:3px}
+.cbtn small{display:block;font-family:var(--sans);font-size:9.5px;font-weight:400;
+  letter-spacing:.06em;text-transform:uppercase;opacity:.7;margin-bottom:2px}
+.cbtn.kzt{background:var(--kztbg);border-color:var(--kzt);color:var(--kzt)}
+.cbtn.lzt{background:var(--lztbg);border-color:var(--lzt);color:var(--lzt)}
+.cbtn.e{background:var(--ebg);border-color:var(--e);color:var(--e)}
+.cbtn.g{background:var(--gbg);border-color:var(--g);color:var(--g)}
+.chead .x{border:0;background:transparent;font-size:19px;line-height:1;color:var(--ink2);
+  padding:0 2px;cursor:pointer;margin-left:6px}
+.chead .pin{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--e);border:1px solid var(--e);background:var(--ebg);padding:1px 5px}
+.lab2{font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--ink2);margin:16px 0 7px}
+.welle{display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--rule);
+  padding:8px 10px;margin-bottom:6px}
+.welle .wn{font-family:var(--mono);font-size:11px;color:var(--ink2);min-width:52px}
+.welle button{min-width:34px;height:30px;border:1px solid var(--rule);background:var(--paper);
+  border-radius:3px;font-family:var(--mono);font-size:13px;color:var(--ink);cursor:pointer}
+.welle .wv{font-family:var(--mono);font-size:13px;font-weight:700;min-width:30px;text-align:center}
+.welle .wd{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--ink2)}
+.restbox{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;
+  background:var(--rule);border:1px solid var(--rule);margin-bottom:14px}
+.rb{background:var(--card);padding:10px 11px}
+.rb .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--ink2);display:block;margin-bottom:3px}
+.rb .v{font-family:var(--mono);font-size:18px;font-weight:700;font-variant-numeric:tabular-nums;display:block}
+.rb.e .v{color:var(--e)}.rb.g .v{color:var(--g)}.rb.bad .v{color:var(--alarm)}
+.bd{background:var(--card);border:1px solid var(--rule);border-left:3px solid var(--rule);
+  padding:10px 12px;margin-bottom:6px}
+.bd.g{border-left-color:var(--g)}.bd.e{border-left-color:var(--e)}
+.bd.bad{border-left-color:var(--alarm);background:var(--alarmbg)}
+.bd.ok{border-left-color:var(--g)}
+.bd .bt{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--ink2);display:block;margin-bottom:2px}
+.bd .bv{font-family:var(--mono);font-size:15px;font-weight:700;display:block}
+.bd .bm{font-size:12.5px;color:var(--ink2)}
+.ent{background:var(--card);border:1px solid var(--rule);padding:10px 11px;margin-bottom:6px;
+  display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.ent .wk{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink2);min-width:70px}
+.ent .id{font-family:var(--mono);font-size:12.5px;font-weight:700}
+.ent .sv{font-family:var(--mono);font-size:10px;font-weight:700;width:22px;height:20px;
+  display:grid;place-items:center;border:1px solid}
+.ent .sv.e{color:var(--e);border-color:var(--e);background:var(--ebg)}
+.ent .sv.g{color:var(--g);border-color:var(--g);background:var(--gbg)}
+.ent .rec{margin-left:auto;font-size:11.5px;color:var(--ink2);text-align:right;flex:1;min-width:120px}
+.ent .rec b{font-family:var(--mono);font-size:12.5px;display:block}
+.ent .rec b.kzt{color:var(--kzt)}.ent .rec b.lzt{color:var(--lzt)}
+.ent.done{opacity:.55}
+.chiprow{display:flex;align-items:center;gap:5px;margin-top:8px;flex-wrap:wrap}
+.chip{min-width:40px;height:34px;border:1px solid var(--rule);background:var(--paper);
+  border-radius:3px;font-family:var(--mono);font-size:13px;font-weight:700;color:var(--ink2);cursor:pointer}
+.chip.on.e{background:var(--e);border-color:var(--e);color:#fff}
+.chip.on.g{background:var(--g);border-color:var(--g);color:#fff}
+.chip:not(.on):active{background:var(--rule)}
+.startrow{display:flex;align-items:center;gap:5px;margin-top:8px}
+.startrow .slab{font-family:var(--mono);font-size:9.5px;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--ink2);margin-right:auto}
+.startrow button{min-width:38px;height:32px;border:1px solid var(--rule);background:var(--paper);
+  border-radius:3px;font-family:var(--mono);font-size:12px;color:var(--ink);cursor:pointer}
+.startrow button:active{background:var(--rule)}
+.startrow button.lose{border-color:var(--e);color:var(--e);background:var(--ebg)}
+.startrow .sval{font-family:var(--mono);font-size:14px;font-weight:700;min-width:34px;
+  text-align:center;font-variant-numeric:tabular-nums}
+.bar{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.btn{font-family:var(--mono);font-size:13px;background:var(--card);border:1px solid var(--rule);
+  border-radius:3px;padding:11px 15px;cursor:pointer;color:var(--ink);flex:1;min-width:130px}
+.btn.solid{background:var(--ink);color:#fff;border-color:var(--ink)}
+button:focus-visible{outline:2px solid var(--e);outline-offset:2px}
+footer{margin-top:36px;padding-top:14px;border-top:1px solid var(--rule);font-size:12.5px;color:var(--ink2)}
+footer p{margin:0 0 8px}
+#err{display:none;background:var(--alarmbg);border:1px solid var(--alarm);color:var(--alarm);
+  padding:12px;margin:12px 0;font-family:var(--mono);font-size:12px;white-space:pre-wrap}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <button class="themebtn" id="theme" type="button" aria-label="Farbschema wechseln"></button>
+  <p class="eyebrow">§ 4 PsychTh-APrV · Praktische Ausbildung · <span style="color:var(--e)">Stand 6</span></p>
+  <h1>Fallplanung</h1>
+  <p class="lede">Jeder Fall erzeugt eine Besprechung pro vier Therapiestunden. Die Termindichte folgt daraus, sie wird nicht vorgegeben. Ob eine Besprechung in die Einzel- oder Gruppensupervision geht, entscheidet nur darüber, wie viel Kontingent sie kostet.</p>
+</header>
+
+<div id="err"></div>
+
+<section>
+  <div class="shead"><span class="snum">01</span><h2>Rahmen</h2></div>
+  <div class="fields" id="fields"></div>
+  <p class="lab2">Aufnahmewellen</p>
+  <div id="wellen"></div>
+  <p class="hint" style="margin-top:10px">Ein gruppensupervidierter Platz verbraucht vier Einheiten je zwei Fälle, ein einzelsupervidierter nur eine. Ein Verhältnis von etwa 1 : 2 trifft die Grenzen von 100 Gruppen- und 50 Einzel-Einheiten.</p>
+</section>
+
+<section>
+  <div class="shead"><span class="snum">02</span><h2>Stand</h2></div>
+  <div class="tiles" id="tiles"></div>
+  <div class="gauge"><div class="gtop"><span>Behandlungsstunden (Therapie)</span><span id="hL"></span></div>
+    <div class="track"><div class="fill k" id="hF"></div></div></div>
+  <div class="gauge"><div class="gtop"><span>Einzel-SV, Einheiten</span><span id="eL"></span></div>
+    <div class="track"><div class="fill e" id="eF"></div><div class="mark" id="eM"></div></div></div>
+  <div class="gauge"><div class="gtop"><span>Gruppen-SV, Einheiten</span><span id="gL"></span></div>
+    <div class="track"><div class="fill g" id="gF"></div><div class="mark" id="gM"></div></div></div>
+  <div class="verdict" id="verdict"></div>
+</section>
+
+<section>
+  <div class="shead"><span class="snum">03</span><h2>Supervision</h2></div>
+  <p class="hint">Zwei Währungen, nicht zu verwechseln: Ein Einzel-Termin zählt 1 Einheit und deckt 8 Behandlungsstunden, eine Gruppenteilnahme zählt 4 Einheiten und deckt ebenfalls 8. Mehrere Gruppen teilen sich die 100 Einheiten, sie vervielfachen sie nicht.</p>
+  <div class="svs" id="svs"></div>
+  <p class="hint" id="svnote" style="margin-top:10px"></p>
+</section>
+
+<section>
+  <div class="shead"><span class="snum">04</span><h2>Zeitachse</h2></div>
+  <div class="tl"><div id="tl"></div><div class="tlaxis" id="tlaxis"></div></div>
+  <div class="legend">
+    <span><i class="sw p"></i>Probatorik</span><span><i class="sw a"></i>Antrag</span>
+    <span><i class="sw kzt"></i>Kurzzeit</span><span><i class="sw lzt"></i>Langzeit</span>
+  </div>
+</section>
+
+<section>
+  <div class="shead"><span class="snum">05</span><h2>Entscheidungen</h2></div>
+  <p class="hint">In Sitzung <span id="esitz">20</span> steht je Fall die Wahl zwischen Kurzzeit und Langzeit an. Die Empfehlung berücksichtigt, was zu diesem Zeitpunkt noch an Budget frei ist — und hält für jeden weiteren offenen Fall mindestens eine Kurzzeittherapie zurück.</p>
+  <div class="restbox" id="restbox"></div>
+  <div id="bedarf" style="margin-bottom:14px"></div>
+  <div id="entsch"></div>
+</section>
+
+<section>
+  <div class="shead"><span class="snum">06</span><h2>Fälle</h2></div>
+  <p class="hint">Kontingent und zuständige Supervisor:in per Antippen umschalten, Start mit den Pfeilen verschieben. Über „Wechsel“ übernimmt ab der gewählten Stunde eine andere Person denselben Fall. Ein verschobener Fall bleibt fixiert und wird beim Neuberechnen nicht mehr automatisch einsortiert.</p>
+  <div id="cases"></div>
+  <div class="bar">
+    <button class="btn solid" id="add">+ Fall hinzufügen</button>
+    <button class="btn" id="gen">Rest automatisch füllen</button>
+    <button class="btn" id="undo">Rückgängig</button>
+  </div>
+  <div class="bar">
+    <button class="btn" id="budget">Auf 100 Einheiten kappen</button>
+    <button class="btn" id="unfix">Startwochen automatisch</button>
+    <button class="btn" id="reset">Alles leeren</button>
+  </div>
+</section>
+
+<footer>
+  <p><b>Stand 6.</b> Fälle entstehen ausschließlich über „+ Fall hinzufügen“ und „Rest automatisch füllen“. Kein Regler, kein Wellenknopf und kein Umschalten auf einer Fallkarte legt Fälle an. Wenn deine Datei oben keinen Stand anzeigt, ist sie älter — dann lade sie neu herunter. „Rückgängig“ nimmt den letzten Massenvorgang zurück: Auffüllen, Kappen, Startwochen-Automatik und Leeren.</p>
+  <p><b>Abbrüche.</b> Jede geleistete Stunde zählt auf die 600, auch wenn nur probatorische Sitzungen stattgefunden haben. Bricht ein Fall vor dem Antrag ab, entfallen Antragsphase und Therapiestunden; die Zeitachse verkürzt sich entsprechend. Supervidiert wird nach je vier geleisteten Stunden, angebrochene Blöcke zählen nicht.</p>
+  <p><b>Rechenweg.</b> Besprechungen je Fall = Stunden ÷ 4. Ein Einzel-Termin fasst zwei Fälle und zählt 1 Einheit, eine Gruppenteilnahme fasst zwei Fälle und zählt 4 Einheiten. Für 150 Einheiten müssen daher rund 400 Stunden einzel- und 200 Stunden gruppensupervidiert werden.</p>
+  <p><b>Kontingente (VT, Erwachsene).</b> Kurzzeittherapie zweimal 12 Therapieeinheiten; Langzeittherapie bis 60, im zweiten Schritt bis 80. Genutzte KZT-Stunden werden angerechnet. Hier zusätzlich 4 probatorische Sitzungen und 3 Wochen Antragsbearbeitung.</p>
+  <p><b>Vorgaben.</b> § 4 Abs. 1 PsychTh-APrV: mindestens 600 Behandlungsstunden, mindestens sechs Patientenbehandlungen, mindestens 150 Supervisionsstunden, davon mindestens 50 Einzel, bei mindestens drei Supervisor:innen. § 4 Abs. 6: mindestens sechs Falldarstellungen. Maßgeblich bleibt die Ordnung deiner Ausbildungsstätte.</p>
+</footer>
+
+</div>
+
+<script>
+"use strict";
+(function(){
+/* ---------- Farbschema: System / Hell / Dunkel ---------- */
+var THEMES=['system','light','dark'], LBL={system:'System',light:'Hell',dark:'Dunkel'};
+function themeLesen(){try{return localStorage.getItem('fp-theme')||'system';}catch(e){return 'system';}}
+function themeSetzen(t){
+  var h=document.documentElement;
+  if(t==='system')h.removeAttribute('data-theme'); else h.setAttribute('data-theme',t);
+  try{localStorage.setItem('fp-theme',t);}catch(e){}
+  var dunkel=(t==='dark')||(t==='system'&&window.matchMedia&&
+    window.matchMedia('(prefers-color-scheme:dark)').matches);
+  var tc=document.getElementById('tc');
+  if(tc)tc.setAttribute('content',dunkel?'#11161B':'#14202E');
+  var b=document.getElementById('theme');
+  if(b)b.textContent=LBL[t];
+}
+/* ---------- Installierbarkeit ---------- */
+function icon(px){
+  var svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">'+
+    '<rect width="512" height="512" rx="96" fill="#14202E"/>'+
+    '<rect x="88" y="150" width="250" height="40" rx="6" fill="#3E6FA8"/>'+
+    '<rect x="88" y="236" width="336" height="40" rx="6" fill="#6B3FA0"/>'+
+    '<rect x="88" y="322" width="170" height="40" rx="6" fill="#B4690E"/>'+
+    '<rect x="88" y="96" width="336" height="8" rx="4" fill="#0E6B63"/></svg>';
+  return 'data:image/svg+xml,'+encodeURIComponent(svg);
+}
+(function(){
+  var ic=icon();
+  var mf={name:'Fallplanung PiA',short_name:'Fallplanung',
+    description:'Fall- und Supervisionsplanung nach § 4 PsychTh-APrV',
+    start_url:'.',scope:'.',display:'standalone',orientation:'portrait',
+    background_color:'#F4F6F4',theme_color:'#14202E',lang:'de',
+    icons:[{src:ic,sizes:'any',type:'image/svg+xml',purpose:'any maskable'}]};
+  var l=document.getElementById('mf');
+  if(l)l.href='data:application/manifest+json,'+encodeURIComponent(JSON.stringify(mf));
+  var a=document.getElementById('ati'); if(a)a.href=ic;
+  if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  }
+})();
+
+var KONT=[{k:'KZT',n:'KZT 1+2',th:24},{k:'LZT',n:'LZT 60',th:60},{k:'LZT',n:'LZT 80',th:80}];
+var PROB=4,ANTRAG=3,UE=150,EMIN=50,GMAX=100,TAKT=4;
+var S={slots:10,gslots:4,att:80,gap:8,ziel:600,hon:110,nE:3,nG:2,
+  start:'2026-09-15',entsch:20,lztG:1,lztE:1,
+  wellen:[{w:0,n:2},{w:6,n:3},{w:16,n:5}],faelle:null};
+var F=[
+ {id:'gslots',lab:'davon Gruppenplätze',min:0,max:10,step:1},
+ {id:'att',lab:'Wahrnehmung %',min:40,max:100,step:5},
+ {id:'gap',lab:'Lücke, Wochen',min:0,max:16,step:1},
+ {id:'ziel',lab:'Zielstunden',min:300,max:1000,step:50},
+ {id:'nE',lab:'Einzel-SVin (A, B, C …)',min:1,max:6,step:1},
+ {id:'nG',lab:'Gruppen (G1, G2 …)',min:0,max:3,step:1},
+ {id:'hon',lab:'Honorar Einzel-UE €',min:0,max:250,step:5},
+ {id:'entsch',lab:'Entscheidung ab Sitzung',min:8,max:24,step:1},
+ {id:'lztG',lab:'LZT in der Gruppe',min:0,max:4,step:1},
+ {id:'lztE',lab:'LZT in der Einzel-SV',min:0,max:6,step:1}
+];
+var MON=['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+function datum(woche){
+  var d=new Date(S.start+'T00:00:00');
+  if(isNaN(d))d=new Date();
+  d.setDate(d.getDate()+Math.round(woche)*7);
+  return MON[d.getMonth()]+' '+d.getFullYear();
+}
+/* Woche, in der Sitzung <entsch> erreicht ist — dann fällt die KZT/LZT-Entscheidung */
+function entscheidWoche(f){
+  var d=daten(f),a=S.att/100;
+  return f.start+d.probW+d.ant+Math.round(Math.min(S.entsch,Math.max(0,d.std-PROB))/a);
+}
+function svListe(){
+  var l=[],i;
+  for(i=0;i<S.nE;i++)l.push({id:String.fromCharCode(65+i),t:'e'});
+  for(i=0;i<S.nG;i++)l.push({id:'G'+(i+1),t:'g'});
+  return l;
+}
+/* Nach Änderung der Konstellation: ungültige Zuordnungen retten statt verwerfen */
+function normalisiere(){
+  var L=svListe(), ids={};
+  L.forEach(function(x){ids[x.id]=x.t;});
+  var ersteE=null, ersteG=null;
+  L.forEach(function(x){
+    if(x.t==='e'&&!ersteE)ersteE=x.id;
+    if(x.t==='g'&&!ersteG)ersteG=x.id;
+  });
+  function heile(id){
+    if(!id)return null;
+    if(ids[id])return id;
+    var warGruppe=(''+id).charAt(0)==='G';
+    if(warGruppe)return ersteG||ersteE;
+    return ersteE||ersteG;
+  }
+  (S.faelle||[]).forEach(function(f){
+    f.svn=heile(f.svn)||ersteE||ersteG;
+    if(f.svn2){f.svn2=heile(f.svn2);if(!f.svn2){f.wStd=0;}}
+  });
+}
+function svVon(f){
+  var l=svListe();
+  var hit=null;
+  l.forEach(function(x){if(x.id===f.svn)hit=x;});
+  return hit||l[0];
+}
+/* Ein Fall besteht aus ein oder zwei Abschnitten mit je eigener Supervisionsperson */
+function segmente(f){
+  var d=daten(f), w=f.wStd||0;
+  if(!w||!f.svn2||w>=d.std)return [{svn:f.svn,std:d.std,vonW:f.start,bisW:d.ende}];
+  var anteil=(w-PROB)/(d.std-PROB);
+  if(anteil<0)anteil=0; if(anteil>1)anteil=1;
+  var grenze=f.start+d.probW+d.ant+Math.round(d.thW*anteil);
+  return [{svn:f.svn,std:w,vonW:f.start,bisW:grenze},
+          {svn:f.svn2,std:d.std-w,vonW:grenze,bisW:d.ende}];
+}
+function wechselStufen(f){
+  var std=daten(f).std, out=[0], i;
+  for(i=PROB+8;i<std;i+=8)out.push(i);
+  return out;
+}
+function n(x,d){d=d||0;return Number(x).toLocaleString('de-DE',
+  {minimumFractionDigits:d,maximumFractionDigits:d});}
+var store={get:function(k){try{return localStorage.getItem(k);}catch(e){return null;}},
+  set:function(k,v){try{localStorage.setItem(k,v);}catch(e){}
+    try{if(window.storage&&window.storage.set)window.storage.set(k,v);}catch(e){}}};
+
+function daten(f){
+  var k=KONT[f.k],a=S.att/100,voll=PROB+k.th;
+  var std=(f.ab!==undefined&&f.ab!==null)?Math.max(1,Math.min(voll,f.ab)):voll;
+  var pStd=Math.min(PROB,std), tStd=Math.max(0,std-PROB);
+  var pw=Math.round(pStd/a), tw=Math.round(tStd/a), ant=tStd>0?ANTRAG:0;
+  return {k:k.k,n:k.n,std:std,voll:voll,abbruch:std<voll,
+    probW:pw,thW:tw,ant:ant,dauer:pw+ant+tw,
+    bespr:Math.floor(std/4),ende:f.start+pw+ant+tw};
+}
+
+/* Welche Fallmischung trifft ein Reststundenziel am besten?
+   Bevorzugt leichte Überdeckung (die per Wechsel gekappt werden kann),
+   dann kleinste Abweichung, dann wenigste Fälle. Lange Fälle zuerst. */
+function komposition(ziel,lzt){
+  if(ziel<=0)return [];
+  lzt=lzt||0;                      // gewünschte Zahl langer Fälle auf dieser Seite
+  var TH=[PROB+KONT[0].th,PROB+KONT[1].th,PROB+KONT[2].th];
+  var best=null,a,b,c;
+  for(a=0;a<=Math.ceil(ziel/TH[0])+1;a++)
+    for(b=0;b<=Math.ceil(ziel/TH[1])+1;b++)
+      for(c=0;c<=Math.ceil(ziel/TH[2])+1;c++){
+        var sum=a*TH[0]+b*TH[1]+c*TH[2];
+        if(sum<ziel)continue;
+        if(sum>ziel+TH[0])continue;
+        var sc=[sum-ziel,Math.abs((b+c)-lzt),a+b+c];
+        if(!best||sc[0]<best.sc[0]
+          ||(sc[0]===best.sc[0]&&sc[1]<best.sc[1])
+          ||(sc[0]===best.sc[0]&&sc[1]===best.sc[1]&&sc[2]<best.sc[2]))
+          best={a:a,b:b,c:c,sc:sc};
+      }
+  if(!best)return [0];
+  var out=[],i;
+  for(i=0;i<best.c;i++)out.push(2);
+  for(i=0;i<best.b;i++)out.push(1);
+  for(i=0;i<best.a;i++)out.push(0);
+  return out;
+}
+
+/* Plätze aus den Aufnahmewellen, jeder mit eigener Startwoche und fester Seite */
+function plaetzeAusWellen(){
+  var p=[],i;
+  (S.wellen||[]).forEach(function(w){for(i=0;i<w.n;i++)p.push(w.w);});
+  if(!p.length)p.push(0);
+  S.slots=p.length;
+  if(S.gslots>S.slots)S.gslots=S.slots;
+  return p.map(function(w,ix){return {ab:w,seite:ix<S.gslots?'g':'e'};});
+}
+
+/* Entschiedene Fälle bleiben stehen; der offene Rest wird neu aufgefüllt,
+   bis beide Seiten ihr Stundenziel möglichst genau treffen. */
+function erzeuge(neu){
+  var L=svListe();
+  var eL=L.filter(function(x){return x.t==='e';}); if(!eL.length)eL=L;
+  var gL=L.filter(function(x){return x.t==='g';}); if(!gL.length)gL=eL;
+  var pl=plaetzeAusWellen();
+  var fest=neu?[]:(S.faelle||[]).slice();
+  var GS=GMAX*2, ES=S.ziel-GS;
+  var summe={g:0,e:0};
+  fest.forEach(function(f){
+    segmente(f).forEach(function(g){summe[typVon(g.svn)]+=g.std;});
+  });
+  // Belegung je Platz: erst die festen Fälle einsortieren
+  var pos=pl.map(function(x){return x.ab;});
+  fest.forEach(function(f){
+    var seite=typVon(f.svn), kand=[],i;
+    for(i=0;i<pl.length;i++)if(pl[i].seite===seite)kand.push(i);
+    if(!kand.length)kand=[0];
+    var mi=kand[0];kand.forEach(function(i){if(pos[i]<pos[mi])mi=i;});
+    if(!f.fix)f.start=Math.max(f.start,pos[mi]);
+    pos[mi]=f.start+daten(f).dauer+S.gap;
+  });
+  var out=fest.slice(), ge=0, ee=0, guard=0;
+  function platzFrei(seite){
+    var kand=[],i;
+    for(i=0;i<pl.length;i++)if(pl[i].seite===seite)kand.push(i);
+    if(!kand.length)return -1;
+    var mi=kand[0];kand.forEach(function(i){if(pos[i]<pos[mi])mi=i;});
+    return mi;
+  }
+  // Für jede Seite die Fallmischung suchen, die das Reststundenziel trifft
+  ['g','e'].forEach(function(seite){
+    var ziel=(seite==='g'?GS:ES)-summe[seite];
+    var mix=komposition(ziel,seite==='g'?S.lztG:S.lztE);
+    var pool=seite==='g'?gL:eL;
+    mix.forEach(function(kIdx){
+      var ix=platzFrei(seite);
+      if(ix<0)return;
+      var f={start:pos[ix],k:kIdx,fix:false,offen:true,
+        svn:seite==='g'?pool[ge++%pool.length].id:pool[ee++%pool.length].id};
+      out.push(f);
+      pos[ix]=f.start+daten(f).dauer+S.gap;
+      guard++;
+    });
+  });
+  out.sort(function(a,b){return a.start-b.start;});
+  S.faelle=out;
+  budgetieren();
+}
+/* Nach jeder Entscheidung den offenen Rest neu berechnen */
+
+/* Kappt die Gruppenseite auf genau 100 Einheiten und setzt den Wechsel in die Einzel-SV */
+function budgetieren(){
+  var L=svListe();
+  var eL=L.filter(function(x){return x.t==='e';});
+  if(!eL.length)return;
+  var GSTD=GMAX*2;                       // 100 Einheiten = 200 Behandlungsstunden
+  var gFaelle=(S.faelle||[]).filter(function(f){return typVon(f.svn)==='g';})
+    .sort(function(a,b){return a.start-b.start;});
+  var used=0,e=0;
+  gFaelle.forEach(function(f){
+    f.wStd=0;f.svn2=null;
+    var d=daten(f);
+    if(used+d.std<=GSTD){used+=d.std;return;}
+    var rest=GSTD-used;
+    var st=wechselStufen(f),pick=0;
+    st.forEach(function(v){if(v&&v<=rest)pick=v;});
+    if(pick){
+      f.wStd=pick;f.svn2=eL[e%eL.length].id;e++;used+=pick;
+    }else{
+      f.svn=eL[e%eL.length].id;e++;      // passt gar nicht mehr: ganz in die Einzel-SV
+    }
+  });
+}
+function repack(){
+  if(!S.faelle)return;
+  ['g','e'].forEach(function(seite){
+    var anz=seite==='g'?S.gslots:S.slots-S.gslots,i;
+    if(anz<=0)anz=1;
+    var pos=[],basis=[];
+    (S.wellen||[]).forEach(function(w){for(var q=0;q<w.n;q++)basis.push(w.w);});
+    if(!basis.length)for(i=0;i<S.slots;i++)basis.push(0);
+    var teil=seite==='g'?basis.slice(0,S.gslots):basis.slice(S.gslots);
+    if(!teil.length)teil=[0];
+    for(i=0;i<anz;i++)pos.push(teil[i%teil.length]);
+    // festgepinnte Fälle blockieren ihren Platz
+    S.faelle.filter(function(f){return svVon(f).t===seite&&f.fix;}).forEach(function(f){
+      var mi=0;for(i=1;i<pos.length;i++)if(pos[i]<pos[mi])mi=i;
+      pos[mi]=Math.max(pos[mi],f.start+daten(f).dauer+S.gap);
+    });
+    S.faelle.filter(function(f){return svVon(f).t===seite&&!f.fix;})
+      .sort(function(a,b){return KONT[b.k].th-KONT[a.k].th;})
+      .forEach(function(f){
+        var mi=0;for(i=1;i<pos.length;i++)if(pos[i]<pos[mi])mi=i;
+        f.start=pos[mi];pos[mi]=f.start+daten(f).dauer+S.gap;
+      });
+  });
+}
+/* Gleichzeitig laufende Fälle je Seite — Grundlage für Supervisionstakt */
+function parallel(pred){
+  var segs=[];
+  (S.faelle||[]).forEach(function(f){
+    segmente(f).forEach(function(g){if(pred(g,f))segs.push(g);});
+  });
+  if(!segs.length)return 0;
+  var ende=0;segs.forEach(function(g){ende=Math.max(ende,g.bisW);});
+  var max=0,w,c,i;
+  for(w=0;w<=ende;w+=2){
+    c=0;for(i=0;i<segs.length;i++)if(w>=segs[i].vonW&&w<segs[i].bisW)c++;
+    if(c>max)max=c;
+  }
+  return max;
+}
+function typVon(id){var t='e';svListe().forEach(function(x){if(x.id===id)t=x.t;});return t;}
+
+function calc(){
+  var rows=(S.faelle||[]).map(function(f){return {f:f,d:daten(f)};});
+  var eStd=0,gStd=0,ende=0,lzt=0,proP={};
+  rows.forEach(function(r){
+    ende=Math.max(ende,r.d.ende);if(r.d.k==='LZT')lzt++;
+    segmente(r.f).forEach(function(g){
+      if(typVon(g.svn)==='e')eStd+=g.std;else gStd+=g.std;
+      proP[g.svn]=(proP[g.svn]||0)+g.std;
+    });
+  });
+  var zyk=TAKT/(S.att/100);
+  var eS=parallel(function(g){return typVon(g.svn)==='e';});
+  var gS=parallel(function(g){return typVon(g.svn)==='g';});
+  var pers=svListe().map(function(x){
+    var par=parallel(function(g){return g.svn===x.id;});
+    var anz=0;
+    (S.faelle||[]).forEach(function(f){
+      segmente(f).forEach(function(g){if(g.svn===x.id)anz++;});
+    });
+    var std=proP[x.id]||0;
+    return {id:x.id,t:x.t,par:par,anz:anz,std:std,
+      termine:std/8, ue:x.t==='e'?std/8:std/2, takt:par>0?zyk/(par/2):0};
+  });
+  return {rows:rows,eStd:eStd,gStd:gStd,std:eStd+gStd,
+    eUE:eStd/8,gUE:gStd/2,gesamt:eStd/8+Math.min(GMAX,gStd/2),
+    eTermine:eStd/8,gTeil:gStd/8,ende:ende,lzt:lzt,anzahl:rows.length,
+    monate:ende/4.345,kosten:eStd/8*S.hon,pers:pers,
+    gTakt:gS>0?zyk/(gS/2):0,zyk:zyk,eS:eS,gS:gS};
+}
+
+/* Restbudget: alle Fälle zählen mit ihrem aktuellen Kontingent, offene also mit 28 */
+function rest(){
+  var GSTD=GMAX*2, ESOLL=S.ziel-GSTD, gTot=0, eTot=0, offen=0;
+  (S.faelle||[]).forEach(function(f){
+    if(f.offen)offen++;
+    segmente(f).forEach(function(g){
+      if(typVon(g.svn)==='g')gTot+=g.std; else eTot+=g.std;
+    });
+  });
+  return {GSTD:GSTD,ESOLL:ESOLL,gTot:gTot,eTot:eTot,
+    gRest:GSTD-gTot,eRest:ESOLL-eTot,offen:offen};
+}
+
+/* Was fehlt noch? Liefert je Seite Reststunden und eine passende Fallmischung. */
+function bedarf(){
+  var R=rest();
+  function mix(ziel,lzt){
+    if(ziel<=0)return [];
+    return komposition(ziel,lzt).map(function(i){return KONT[i].n;});
+  }
+  function zaehl(arr){
+    var m={},o=[];
+    arr.forEach(function(x){m[x]=(m[x]||0)+1;});
+    ['LZT 80','LZT 60','KZT 1+2'].forEach(function(k){if(m[k])o.push(m[k]+'× '+k);});
+    return o.join(', ');
+  }
+  return {
+    gRest:R.gRest,eRest:R.eRest,gTot:R.gTot,eTot:R.eTot,GSTD:R.GSTD,ESOLL:R.ESOLL,
+    gMix:zaehl(mix(R.gRest,S.lztG)),eMix:zaehl(mix(R.eRest,S.lztE))
+  };
+}
+
+/* Empfehlung: Wie weit lässt sich dieser Fall hochstufen, ohne die Seite zu sprengen? */
+function empfehlung(f){
+  var R=rest(), istG=typVon(f.svn)==='g';
+  var frei=istG?R.gRest:R.eRest;
+  var jetzt=daten(f).std;
+  var seite=istG?'Gruppen':'Einzel';
+  var luft=frei+jetzt;   // was dieser Fall maximal werden dürfte
+  var moegl=[];
+  if(luft>=PROB+KONT[2].th)moegl.push('LZT 80');
+  if(luft>=PROB+KONT[1].th)moegl.push('LZT 60');
+  moegl.push('KZT 1+2');
+  return {w:KONT[f.k].n,t:KONT[f.k].k==='KZT'?'kzt':'lzt',
+    txt:'möglich: '+moegl.join(', ')+' · '+seite+'seite noch '+n(frei)+' Std'};
+}
+
+function fields(){
+  var el=document.getElementById('fields');el.innerHTML='';
+  F.forEach(function(f){
+    var d=document.createElement('div');d.className='field';
+    d.innerHTML='<label>'+f.lab+'</label><div class="stepper">'+
+      '<button type="button" data-d="-1">&minus;</button><span class="val">'+S[f.id]+'</span>'+
+      '<button type="button" data-d="1">+</button></div>';
+    Array.prototype.forEach.call(d.querySelectorAll('button'),function(b){
+      b.onclick=function(){
+        S[f.id]=Math.min(f.max,Math.max(f.min,S[f.id]+(+b.getAttribute('data-d'))*f.step));
+        if(S.gslots>S.slots-1)S.gslots=Math.max(0,S.slots-1);
+        normalisiere();repack();save();fields();wellenUI();render();
+      };
+    });
+    el.appendChild(d);
+  });
+}
+
+function wellenUI(){
+  var el=document.getElementById('wellen');if(!el)return;
+  el.innerHTML='';
+  (S.wellen||[]).forEach(function(w,ix){
+    var d=document.createElement('div');d.className='welle';
+    d.innerHTML='<span class="wn">Woche</span>'+
+      '<button type="button" data-a="w-">&minus;</button><span class="wv">'+w.w+'</span>'+
+      '<button type="button" data-a="w+">+</button>'+
+      '<span class="wn" style="margin-left:10px">Plätze</span>'+
+      '<button type="button" data-a="n-">&minus;</button><span class="wv">'+w.n+'</span>'+
+      '<button type="button" data-a="n+">+</button>'+
+      '<span class="wd">'+datum(w.w)+'</span>';
+    Array.prototype.forEach.call(d.querySelectorAll('button'),function(b){
+      b.onclick=function(){
+        var a=b.getAttribute('data-a');
+        if(a==='w-')w.w=Math.max(0,w.w-1);
+        if(a==='w+')w.w=w.w+1;
+        if(a==='n-')w.n=Math.max(0,w.n-1);
+        if(a==='n+')w.n=Math.min(12,w.n+1);
+        normalisiere();repack();save();fields();wellenUI();render();
+      };
+    });
+    el.appendChild(d);
+  });
+}
+
+function entscheidungenUI(){
+  var R=rest();
+  var box=document.getElementById('restbox');
+  var t=[
+    ['Gruppe',n(R.gTot)+' / '+n(R.GSTD),R.gRest<0?'bad':'g'],
+    ['Einzel',n(R.eTot)+' / '+n(R.ESOLL),R.eRest<0?'bad':'e'],
+    ['offene Fälle',n(R.offen),''],
+    ['festgelegt',n((S.faelle||[]).length-R.offen),'']
+  ];
+  box.innerHTML=t.map(function(r){
+    return '<div class="rb '+r[2]+'"><span class="k">'+r[0]+'</span><span class="v">'+r[1]+'</span></div>';
+  }).join('');
+  var B=bedarf(), bd=document.getElementById('bedarf');
+  if(bd){
+    var zeilen=[];
+    if(B.gRest>0)zeilen.push(['g','Gruppe',n(B.gRest)+' Std offen',B.gMix||'—']);
+    if(B.eRest>0)zeilen.push(['e','Einzel',n(B.eRest)+' Std offen',B.eMix||'—']);
+    if(B.gRest<0)zeilen.push(['bad','Gruppe',n(-B.gRest)+' Std über Budget','Wechsel setzen oder Fall in die Einzel-SV']);
+    if(B.eRest<0)zeilen.push(['bad','Einzel',n(-B.eRest)+' Std über Budget','Fall entfernen oder verkürzen']);
+    bd.innerHTML=zeilen.length
+      ? zeilen.map(function(z){
+          return '<div class="bd '+z[0]+'"><span class="bt">'+z[1]+'</span>'+
+            '<span class="bv">'+z[2]+'</span><span class="bm">'+z[3]+'</span></div>';}).join('')
+      : '<div class="bd ok"><span class="bt">Vollständig</span><span class="bv">beide Seiten gedeckt</span>'+
+        '<span class="bm">Stunden und Einheiten erreicht</span></div>';
+  }
+
+  var rows=(S.faelle||[]).map(function(f,i){return {f:f,i:i,w:entscheidWoche(f)};})
+    .sort(function(a,b){return a.w-b.w;});
+  document.getElementById('entsch').innerHTML=rows.map(function(r){
+    var t=typVon(r.f.svn), rec=r.f.offen?empfehlung(r.f):null;
+    return '<div class="ent'+(r.f.offen?'':' done')+'">'+
+      '<span class="wk">'+datum(r.w)+'</span>'+
+      '<span class="id">F'+(r.i+1)+'</span>'+
+      '<span class="sv '+t+'">'+r.f.svn+'</span>'+
+      '<span class="rec">'+(rec
+        ? 'vorgesehen<b class="'+rec.t+'">'+rec.w+'</b>'+rec.txt
+        : 'festgelegt<b class="'+(KONT[r.f.k].k==='KZT'?'kzt':'lzt')+'">'+KONT[r.f.k].n+'</b>')+
+      '</span></div>';
+  }).join('');
+  var es=document.getElementById('esitz');if(es)es.textContent=S.entsch;
+}
+
+function render(){
+  var c=calc();
+  var t=[['Fälle',n(c.anzahl),'mind. 6',c.anzahl>=6?'ok':'bad'],
+    ['Behandlungsstd.',n(c.std),'von '+n(S.ziel),c.std>=S.ziel?'ok':'bad'],
+    ['Dauer',n(c.monate,1),'Monate',''],
+    ['Supervisions-UE',n(c.gesamt),'von 150',c.gesamt>=UE?'ok':'bad'],
+    ['Einzel-Termine',n(c.eTermine),'max. keine Grenze','e'],
+    ['Teilnahmen',n(c.gTeil),'von 25 möglich',c.gTeil>25?'bad':(c.gTeil===25?'ok':'')],
+    ['Honorar',n(c.kosten)+' €','Einzel-SV','e']];
+  document.getElementById('tiles').innerHTML=t.map(function(r){
+    return '<div class="tile '+r[3]+'"><span class="k">'+r[0]+'</span><span class="v">'+
+      r[1]+'</span><span class="u">'+r[2]+'</span></div>';}).join('');
+
+  function bar(f,l,v,m,mk,mi){
+    document.getElementById(f).style.width=Math.min(100,v/m*100)+'%';
+    document.getElementById(l).textContent=n(v)+' / '+n(m);
+    if(mi)document.getElementById(mi).style.left=(mk/m*100)+'%';
+  }
+  bar('hF','hL',c.std,S.ziel);
+  bar('eF','eL',c.eUE,UE,EMIN,'eM');
+  bar('gF','gL',c.gUE,UE,GMAX,'gM');
+  document.getElementById('gF').className='fill '+(c.gUE>GMAX?'bad':'g');
+
+  var p=[];
+  if(c.anzahl<6)p.push('Nur '+c.anzahl+' Fälle — mindestens sechs Patientenbehandlungen sind Pflicht.');
+  if(c.std<S.ziel)p.push('Es fehlen <b>'+n(S.ziel-c.std)+'</b> Behandlungsstunden.');
+  if(c.eUE<EMIN)p.push('Nur <b>'+n(c.eUE)+'</b> Einzel-Einheiten — 50 sind Pflicht. Verschiebe Plätze aus der Gruppe in die Einzelsupervision.');
+  if(c.gTeil>25)p.push('<b>'+n(c.gTeil)+'</b> Gruppenteilnahmen, anrechenbar sind nur <b>25</b> (100 Einheiten ÷ 4). '+
+    n(c.gTeil-25)+' Teilnahmen und <b>'+n((c.gTeil-25)*8)+'</b> Behandlungsstunden verfallen. '+
+    'Lass Fälle nach dem Erreichen des Budgets in die Einzelsupervision wechseln.');
+  if(c.gesamt<UE)p.push('Anrechenbar nur <b>'+n(c.gesamt)+'</b> Einheiten. Mehr Gruppenplätze erhöhen die Einheiten schneller.');
+  if(S.nG===0&&S.gslots>0)p.push('Es sind '+S.gslots+' Gruppenplätze eingestellt, aber keine Gruppe angelegt. Erhöhe „Gruppen“ auf mindestens 1.');
+  var belegt=c.pers.filter(function(x){return x.anz>0;}).length;
+  if(belegt<3)p.push('Nur '+belegt+' belegte Supervisor:innen — mindestens drei sind vorgeschrieben.');
+  c.pers.forEach(function(x){
+    if(x.par>0&&x.takt<1)p.push('<b>'+x.id+'</b> hätte '+x.par+' parallele Fälle und müsste dich häufiger als wöchentlich sehen.');
+  });
+  if(c.gTakt>0&&c.gTakt<1)p.push('Bei <b>'+c.gS+'</b> parallelen Gruppenfällen wäre die Gruppe häufiger als wöchentlich nötig — verschiebe Fälle in die Einzelsupervision oder zeitlich auseinander.');
+  var v=document.getElementById('verdict');
+  if(p.length){v.className='verdict bad';
+    v.innerHTML='<h3>Offene Punkte</h3>'+p.map(function(x){return '<p>'+x+'</p>';}).join('');}
+  else{v.className='verdict';
+    v.innerHTML='<h3>Der Plan trägt</h3><p><b>'+c.anzahl+'</b> Fälle auf <b>'+S.slots+
+      '</b> Plätzen, <b>'+n(c.std)+'</b> Stunden, <b>'+n(c.gesamt)+'</b> Einheiten in <b>'+
+      n(c.monate,1)+'</b> Monaten.</p><p><b>'+n(c.eTermine)+'</b> Einzel-Termine und <b>'+
+      n(c.gTeil)+'</b> Gruppenteilnahmen. Honorar <b>'+n(c.kosten)+' €</b>.</p>';}
+
+  document.getElementById('svs').innerHTML=c.pers.map(function(x){
+    return '<div class="svc"><span class="svb '+x.t+'">'+x.id+'</span><span class="svm">'+
+      '<b>'+n(x.ue)+'</b> Einheiten'+
+      '<em>'+n(x.termine)+(x.t==='e'?' Termine':' Teilnahmen')+' · deckt '+n(x.std)+' Behandlungsstunden</em>'+
+      '<em>max. '+x.par+' parallel'+(x.par?' · alle '+n(x.takt,1)+' Wochen':' · nicht belegt')+'</em>'+
+      '</span></div>';
+  }).join('');
+  document.getElementById('svnote').textContent='Bei '+S.att+' % Wahrnehmung erreicht ein Fall vier Sitzungen nach rund '+
+    n(c.zyk,1)+' Wochen. Ein Termin fasst zwei Fälle — daraus folgt der Takt.';
+
+  var maxW=Math.max(52,c.ende);
+  document.getElementById('tl').innerHTML=c.rows.map(function(r,i){
+    var L=function(x){return (x/maxW*100)+'%';},off=r.f.start,h='';
+    [['p',r.d.probW],['a',r.d.ant],[r.d.k==='KZT'?'kzt':'lzt',r.d.thW]].forEach(function(q){
+      h+='<div class="seg '+q[0]+'" style="left:'+L(off)+';width:'+L(q[1])+'"></div>';off+=q[1];});
+    var segs=segmente(r.f),mk='';
+    if(segs.length>1)mk='<div class="wmark" style="left:'+L(segs[1].vonW)+'"></div>';
+    var lbl=segs.map(function(g){return g.svn;}).join('\u2192');
+    return '<div class="tlrow"><span class="tlid">F'+(i+1)+'</span><span class="tlsv '+
+      typVon(segs[0].svn)+'">'+lbl+'</span><span class="tlbar'+(r.d.abbruch?' ab':'')+'">'+h+mk+'</span></div>';
+  }).join('');
+  document.getElementById('tlaxis').innerHTML='<span>Start</span><span>Monat '+
+    n(maxW/2/4.345)+'</span><span>Monat '+n(maxW/4.345)+'</span>';
+
+  var ub=document.getElementById('undo');
+  if(ub)ub.style.opacity=S.undo?1:.45;
+  entscheidungenUI();
+  var cs=document.getElementById('cases');cs.innerHTML='';
+  if(!c.rows.length){
+    cs.innerHTML='<div class="bd"><span class="bt">Noch keine Fälle</span>'+
+      '<span class="bv">Plan ist leer</span><span class="bm">Füge Fälle einzeln hinzu, '+
+      'oder lass den Rest automatisch füllen.</span></div>';
+  }
+  c.rows.forEach(function(r,i){
+    var d=document.createElement('div');d.className='case';
+    d.innerHTML='<div class="chead"><span class="id">Fall '+(i+1)+'</span>'+
+      (r.d.abbruch?'<span class="pin" style="color:var(--alarm);border-color:var(--alarm);background:var(--alarmbg)">abgebrochen</span>':'')+
+      (r.f.fix?'<span class="pin">fixiert</span>':'')+
+      '<span class="meta">Wo. '+r.f.start+'&ndash;'+r.d.ende+' · '+r.d.std+' Std · '+
+      n(r.d.bespr,1)+' Bespr.</span>'+
+      '<button class="x" type="button" data-a="del">&times;</button></div>'+
+      '<div class="cgrid" style="grid-template-columns:1fr">'+
+      '<button class="cbtn '+(r.d.k==='KZT'?'kzt':'lzt')+'" data-a="k"><small>Kontingent</small>'+r.d.n+'</button></div>'+
+      '<div class="chiprow"><span class="slab">Supervision</span>'+
+      svListe().map(function(x){
+        return '<button type="button" class="chip '+x.t+(x.id===r.f.svn?' on':'')+
+          '" data-a="pick" data-id="'+x.id+'">'+x.id+'</button>';
+      }).join('')+'</div>'+
+      '<div class="startrow"><span class="slab">Start Woche</span>'+
+      '<button type="button" data-a="m4">&minus;4</button>'+
+      '<button type="button" data-a="m1">&minus;1</button>'+
+      '<span class="sval">'+r.f.start+'</span>'+
+      '<button type="button" data-a="p1">+1</button>'+
+      '<button type="button" data-a="p4">+4</button>'+
+      (r.f.fix?'<button type="button" data-a="auto" class="lose">auto</button>':'')+'</div>'+
+      '<div class="startrow"><span class="slab">Wechsel</span>'+
+      '<button type="button" data-a="w" style="flex:1">'+
+        (r.f.wStd?('ab Std. '+r.f.wStd):'kein Wechsel')+'</button>'+
+      '</div>'+
+      '<div class="startrow"><span class="slab">Abbruch nach</span>'+
+      '<button type="button" data-a="a-4">&minus;4</button>'+
+      '<button type="button" data-a="a-1">&minus;1</button>'+
+      '<span class="sval">'+(r.d.abbruch?r.d.std:'—')+'</span>'+
+      '<button type="button" data-a="a+1">+1</button>'+
+      '<button type="button" data-a="a+4">+4</button>'+
+      (r.d.abbruch?'<button type="button" data-a="a0" class="lose">voll</button>':'')+'</div>'+
+      (r.f.wStd?'<div class="chiprow"><span class="slab">übernimmt</span>'+
+        svListe().map(function(x){
+          return '<button type="button" class="chip '+x.t+(x.id===r.f.svn2?' on':'')+
+            '" data-a="pick2" data-id="'+x.id+'">'+x.id+'</button>';
+        }).join('')+'</div>':'');
+    Array.prototype.forEach.call(d.querySelectorAll('[data-a]'),function(b){
+      b.onclick=function(){
+        var a=b.getAttribute('data-a');
+        if(a==='k'){r.f.k=(r.f.k+1)%KONT.length;r.f.offen=false;}
+        else if(a==='pick'){r.f.svn=b.getAttribute('data-id');}
+        else if(a==='pick2'){r.f.svn2=b.getAttribute('data-id');}
+        else if(a==='del'){S.faelle.splice(S.faelle.indexOf(r.f),1);}
+        else if(a==='auto'){r.f.fix=false;}
+        else if(a==='a0'){r.f.ab=null;}
+        else if(a.charAt(0)==='a'){
+          var dv={'a-4':-4,'a-1':-1,'a+1':1,'a+4':4}[a]||0;
+          var voll=PROB+KONT[r.f.k].th;
+          var cur=(r.f.ab===undefined||r.f.ab===null)?voll:r.f.ab;
+          var nv=Math.max(1,Math.min(voll,cur+dv));
+          r.f.ab=(nv>=voll)?null:nv;
+        }
+        else if(a==='w'){
+          var st=wechselStufen(r.f),ix=st.indexOf(r.f.wStd||0);
+          r.f.wStd=st[(ix+1)%st.length];
+          if(r.f.wStd&&!r.f.svn2){var L2=svListe();
+            r.f.svn2=L2[(L2.map(function(y){return y.id;}).indexOf(r.f.svn)+1)%L2.length].id;}
+          if(!r.f.wStd)r.f.svn2=null;
+        }
+
+        else{var dw={m4:-4,m1:-1,p1:1,p4:4}[a];
+             r.f.start=Math.max(0,r.f.start+dw);r.f.fix=true;}
+        repack();save();render();
+      };
+    });
+    cs.appendChild(d);
+  });
+}
+
+function schnappschuss(){
+  try{S.undo=JSON.stringify(S.faelle||[]);}catch(e){S.undo=null;}
+}
+function zurueck(){
+  if(!S.undo)return false;
+  try{S.faelle=JSON.parse(S.undo);}catch(e){return false;}
+  S.undo=null;return true;
+}
+function save(){try{store.set('fallplan5',JSON.stringify(S));}catch(e){}}
+function load(){try{var r=store.get('fallplan5');if(r){var o=JSON.parse(r);
+  for(var k in o)if(o.hasOwnProperty(k))S[k]=o[k];}}catch(e){}}
+
+try{
+  themeSetzen(themeLesen());
+  document.getElementById('theme').onclick=function(){
+    var t=themeLesen(), i=THEMES.indexOf(t);
+    themeSetzen(THEMES[(i+1)%THEMES.length]);
+  };
+  if(window.matchMedia)try{
+    window.matchMedia('(prefers-color-scheme:dark)').addEventListener('change',function(){
+      if(themeLesen()==='system')themeSetzen('system');
+    });
+  }catch(e){}
+  load();fields();wellenUI();
+  document.getElementById('gen').onclick=function(){
+    schnappschuss();erzeuge(false);normalisiere();repack();save();render();};
+  document.getElementById('undo').onclick=function(){
+    if(zurueck()){normalisiere();repack();save();render();}
+    else{var u=document.getElementById('undo');var t=u.textContent;
+      u.textContent='nichts rückgängig';setTimeout(function(){u.textContent=t;},1400);}};
+  document.getElementById('add').onclick=function(){
+    S.faelle=S.faelle||[];
+    var L=svListe(), R=rest();
+    // Seite, die anteilig am weitesten zurückliegt, bekommt den Fall
+    var qG=R.GSTD>0?R.gTot/R.GSTD:1, qE=R.ESOLL>0?R.eTot/R.ESOLL:1;
+    var seite=(R.gRest>0&&(qG<=qE||R.eRest<=0))?'g':'e';
+    if(R.gRest<=0)seite='e';
+    var pool=L.filter(function(x){return x.t===seite;});
+    if(!pool.length)pool=L;
+    // gleichmäßig auf die Personen dieser Seite verteilen
+    var zaehl={};pool.forEach(function(x){zaehl[x.id]=0;});
+    S.faelle.forEach(function(f){if(zaehl[f.svn]!==undefined)zaehl[f.svn]++;});
+    var pid=pool[0].id;pool.forEach(function(x){if(zaehl[x.id]<zaehl[pid])pid=x.id;});
+    // Startwoche: nach dem letzten Fall dieser Person, mindestens ab der ersten Welle
+    var ab=(S.wellen&&S.wellen.length)?S.wellen[0].w:0, ende=ab;
+    S.faelle.forEach(function(f){if(f.svn===pid)ende=Math.max(ende,daten(f).ende+S.gap);});
+    S.faelle.push({start:ende,k:0,svn:pid,fix:true,offen:true});
+    save();render();};
+  document.getElementById('budget').onclick=function(){
+    schnappschuss();budgetieren();save();render();};
+  document.getElementById('reset').onclick=function(){
+    try{localStorage.removeItem('fallplan5');}catch(e){}
+    schnappschuss();S.faelle=[];save();fields();wellenUI();render();};
+  document.getElementById('unfix').onclick=function(){
+    schnappschuss();
+    (S.faelle||[]).forEach(function(f){f.fix=false;});
+    repack();save();render();};
+  if(!S.faelle)S.faelle=[];
+  normalisiere();render();
+}catch(e){
+  var el=document.getElementById('err');el.style.display='block';
+  el.textContent='Fehler: '+(e&&e.message?e.message:e);
+}
+})();
+</script>
+</body>
+</html>
